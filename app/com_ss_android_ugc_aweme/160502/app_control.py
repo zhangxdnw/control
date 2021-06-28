@@ -1,6 +1,5 @@
 import sys
 import time
-from time import sleep
 
 import uiautomator2 as u2
 
@@ -11,6 +10,7 @@ sys.path.append("..")
 from .. import common
 
 device: Device
+target_app_package: str
 
 
 def init(serial: str):
@@ -61,7 +61,68 @@ def launch_app(app_package: str, activity: str):
     top_activity = app_utils.top_activity(device)
     window_count = len(app_utils.activity_window(device, activity))
     assert top_app == app_package and top_activity == activity and window_count == 1
+    global target_app_package
+    target_app_package = top_app
     # 加入一次滑动 取消蒙板
     width, height = device.window_size()
     device.swipe(0.5 * width, 0.7 * height, 0.5 * width, 0.3 * height)
+    return
+
+
+def logout():
+    width, height = device.window_size()
+    #
+    device.click(int(width * 0.9), int(height * 0.95))
+    time.sleep(0.5)
+    #
+    device(resourceId='com.ss.android.ugc.aweme:id/fqo').click_exists()
+    time.sleep(0.5)
+    #
+    device(resourceId='com.ss.android.ugc.aweme:id/kry').click_exists()
+    time.sleep(0.5)
+    #
+    device.swipe(0.5 * width, 0.9 * height, 0.5 * width, 0.1 * height)
+    time.sleep(0.5)
+    #
+    device(resourceId='com.ss.android.ugc.aweme:id/logout').click_exists()
+    time.sleep(0.5)
+    #
+    device(resourceId='android:id/button1').click_exists()
+    time.sleep(3)
+
+
+def login(account: str, password: str, phone: str):
+    width, height = device.window_size()
+    #
+    device.click(int(width * 0.9), int(height * 0.95))
+    time.sleep(1)
+    #
+    device.click(int(width) * 0.591, int(height * 0.941))
+    time.sleep(1)
+    #
+    device(resourceId='com.ss.android.ugc.aweme:id/fa4').click_exists(timeout=3)
+    time.sleep(1)
+    #
+    device(resourceId='com.ss.android.ugc.aweme:id/gdm').send_keys(account)
+    device(resourceId='com.ss.android.ugc.aweme:id/gtc').click_exists()
+    device(resourceId='com.ss.android.ugc.aweme:id/gax').send_keys(password)
+    device(resourceId='com.ss.android.ugc.aweme:id/login').click()
+    #
+    time.sleep(1)
+    device(resourceId='com.ss.android.ugc.aweme:id/h85').click_exists()
+
+
+def find_friend(account: str):
+    return
+
+
+def star():
+    return
+
+
+def like():
+    return
+
+
+def play():
     return

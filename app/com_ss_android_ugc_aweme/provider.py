@@ -1,5 +1,6 @@
 import os
 from types import ModuleType
+from typing import Optional
 
 import uiautomator2 as u2
 import importlib
@@ -26,16 +27,22 @@ def load_script(device_serial: str, app_package: str, version_code: int):
     print(module)
 
 
-def do_action(action: str, params: dict):
-    arg = str_utils.dict2params(params)
-    print(arg)
-    execute = 'module.' + action + '(' + arg + ')'
+def do_action(action: str, params: Optional[dict] = None):
+    if params is not None:
+        arg = str_utils.dict2params(params)
+        print(arg)
+        execute = 'module.' + action + '(' + arg + ')'
+    else:
+        execute = 'module.' + action + '()'
     print(execute)
     eval(execute)
 
 
 if __name__ == '__main__':
-    load_script('ec93e2fe', 'com.ss.android.ugc.aweme', 160502)
-    do_action("init", {'serial': 'ec93e2fe'})
-    do_action("launch_app", {'app_package': 'com.ss.android.ugc.aweme', 'activity': 'com.ss.android.ugc.aweme.main.MainActivity'})
+    load_script('80eeeab9', 'com.ss.android.ugc.aweme', 160502)
+    do_action("init", {'serial': '80eeeab9'})
+    do_action("launch_app",
+              {'app_package': 'com.ss.android.ugc.aweme', 'activity': 'com.ss.android.ugc.aweme.main.MainActivity'})
+    do_action("logout")
+    do_action("login", {'account': '13243785230', 'password': 'zxd19860731', 'phone': '13243785230'})
     # print(dir_name)
