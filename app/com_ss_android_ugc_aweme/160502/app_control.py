@@ -16,6 +16,8 @@ target_app_package: str
 def init(serial: str):
     global device
     device = u2.connect(serial)
+    device.app_stop_all()
+    device.screen_on()
 
 
 def launch_app(app_package: str, activity: str):
@@ -50,6 +52,7 @@ def launch_app(app_package: str, activity: str):
                         print('已尝试完')
             else:
                 print('目标界面被遮盖:%s, 重试次数：%d' % (top_activity, count))
+                device.app_stop(app_package)
         elif top_app == 'com.android.permissioncontroller':
             print('权限弹窗界面,尝试点击同意')
             device(resourceId='com.android.permissioncontroller:id/permission_allow_button').click_exists()
@@ -71,45 +74,75 @@ def launch_app(app_package: str, activity: str):
 
 def logout():
     width, height = device.window_size()
-    #
-    device.click(int(width * 0.9), int(height * 0.95))
-    time.sleep(0.5)
-    #
-    device(resourceId='com.ss.android.ugc.aweme:id/fqo').click_exists()
-    time.sleep(0.5)
-    #
-    device(resourceId='com.ss.android.ugc.aweme:id/kry').click_exists()
-    time.sleep(0.5)
-    #
-    device.swipe(0.5 * width, 0.9 * height, 0.5 * width, 0.1 * height)
-    time.sleep(0.5)
-    #
-    device(resourceId='com.ss.android.ugc.aweme:id/logout').click_exists()
-    time.sleep(0.5)
-    #
-    device(resourceId='android:id/button1').click_exists()
-    time.sleep(3)
+    # 点击 我
+    print('点击我')
+    device.xpath('//*[@resource-id="com.ss.android.ugc.aweme:id/root_view"]/android.widget.FrameLayout[5]').click()
+    time.sleep(1)
+    top_activity = app_utils.top_activity(device)
+    if top_activity != 'com.ss.android.ugc.aweme.account.business.login.DYLoginActivity':
+        assert top_activity == 'com.ss.android.ugc.aweme.main.MainActivity', '当前界面不是主界面:' + top_activity
+        print('点击选项按钮')
+        device(resourceId='com.ss.android.ugc.aweme:id/fqo').click_exists(2)
+
+        top_activity = app_utils.top_activity(device)
+        assert top_activity == 'com.ss.android.ugc.aweme.main.MainActivity', '当前界面不是主界面:' + top_activity
+        print('点击设置按钮')
+        device(resourceId='com.ss.android.ugc.aweme:id/kry').click_exists(2)
+
+        top_activity = app_utils.top_activity(device)
+        assert top_activity == 'com.ss.android.ugc.aweme.setting.ui.DouYinSettingNewVersionActivity', \
+            '当前界面不是设置界面:' + top_activity
+        print('滑动到最底部')
+        device.swipe(0.5 * width, 0.9 * height, 0.5 * width, 0.1 * height)
+
+        top_activity = app_utils.top_activity(device)
+        assert top_activity == 'com.ss.android.ugc.aweme.setting.ui.DouYinSettingNewVersionActivity', \
+            '当前界面不是设置界面:' + top_activity
+        print('点击退出按钮')
+        device(resourceId='com.ss.android.ugc.aweme:id/logout').click_exists(2)
+
+        print('确认退出')
+        device(resourceId='android:id/button1').click_exists(2)
+    else:
+        print('已切换到登录界面，完成退出动作')
+    if app_utils.input_shown(device):
+        device.press("back")
+        time.sleep(1)
+    device.press('back')
+    time.sleep(2)
 
 
 def login(account: str, password: str, phone: str):
     width, height = device.window_size()
-    #
-    device.click(int(width * 0.9), int(height * 0.95))
+    # 点击 我
+    print('点击我')
+    device.xpath('//*[@resource-id="com.ss.android.ugc.aweme:id/root_view"]/android.widget.FrameLayout[5]').click()
     time.sleep(1)
-    #
-    device.click(int(width) * 0.591, int(height * 0.941))
-    time.sleep(1)
-    #
-    device(resourceId='com.ss.android.ugc.aweme:id/fa4').click_exists(timeout=3)
-    time.sleep(1)
-    #
-    device(resourceId='com.ss.android.ugc.aweme:id/gdm').send_keys(account)
-    device(resourceId='com.ss.android.ugc.aweme:id/gtc').click_exists()
-    device(resourceId='com.ss.android.ugc.aweme:id/gax').send_keys(password)
-    device(resourceId='com.ss.android.ugc.aweme:id/login').click()
-    #
-    time.sleep(1)
-    device(resourceId='com.ss.android.ugc.aweme:id/h85').click_exists()
+    top_activity = app_utils.top_activity(device)
+    if top_activity == 'com.ss.android.ugc.aweme.account.business.login.DYLoginActivity':
+        if device(resourceId='com.ss.android.ugc.aweme:id/jag').exists:  # 以其他帐号登录
+            y_p = device(resourceId='com.ss.android.ugc.aweme:id/jag').center()[1]
+            print('点击以其他帐号 登录')
+            device.click(int(0.592 * width), y_p)
+            time.sleep(1)
+        if device(resourceId='com.ss.android.ugc.aweme:id/one_key_login_other_phone_login').exists:  # 其他手机号登录
+            print('点击其他手机号码登录')
+            device(resourceId='com.ss.android.ugc.aweme:id/one_key_login_other_phone_login').click(3)
+        print('点击密码登录')
+        device(resourceId='com.ss.android.ugc.aweme:id/fa4').click_exists(timeout=3)  # 密码登录
+        print('输入帐号' + account)
+        device(resourceId='com.ss.android.ugc.aweme:id/gdm').send_keys(account)  # 输入帐号
+        print('点击同意协议')
+        device(resourceId='com.ss.android.ugc.aweme:id/gtc').click_exists(1)  # 同意协议
+        print('输入密码' + password)
+        device(resourceId='com.ss.android.ugc.aweme:id/gax').send_keys(password)  # 输入密码
+        print('点击登录')
+        device(resourceId='com.ss.android.ugc.aweme:id/login').click(3)  # 登录
+        print('点击跳过')
+        device(resourceId='com.ss.android.ugc.aweme:id/h85').click_exists(3)  # 跳过
+    else:
+        assert top_activity == 'com.ss.android.ugc.aweme.main.MainActivity', '当前界面不是主界面:' + top_activity
+        # 查找指定view 证明已登录
 
 
 def find_friend(account: str):

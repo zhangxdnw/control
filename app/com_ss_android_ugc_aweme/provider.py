@@ -1,4 +1,5 @@
 import os
+import re
 from types import ModuleType
 from typing import Optional
 
@@ -18,6 +19,8 @@ def load_script(device_serial: str, app_package: str, version_code: int):
     assert version_code > 0, '应用版本号为0'
     device = u2.connect(device_serial)
     app_info = device.app_info(package_name=app_package)
+    print('应用信息:')
+    print(app_info)
     assert app_info['versionCode'] == version_code, '应用版本信息不匹配'
     assert os.listdir(dir_name).__contains__(str(app_info['versionCode'])), '找不到对应版本的脚本'
     load_file_path = 'app.' + package_name + '.' + str(app_info['versionCode']) + '.app_control'
@@ -38,11 +41,20 @@ def do_action(action: str, params: Optional[dict] = None):
     eval(execute)
 
 
+def get_connect_device_serial() -> list:
+    with os.popen('adb devices') as pipe:
+        cmd_read = pipe.read()
+        print(cmd_read)
+        device_re = re.compile(r"(\S+)\tdevice")
+        device = device_re.findall(cmd_read)
+        return device
+
+
 if __name__ == '__main__':
-    load_script('80eeeab9', 'com.ss.android.ugc.aweme', 160502)
-    do_action("init", {'serial': '80eeeab9'})
+    dev_serial = get_connect_device_serial()[0]
+    load_script(dev_serial, 'com.ss.android.ugc.aweme', 160502)
+    do_action("init", {'serial': dev_serial})
     do_action("launch_app",
               {'app_package': 'com.ss.android.ugc.aweme', 'activity': 'com.ss.android.ugc.aweme.main.MainActivity'})
     do_action("logout")
     do_action("login", {'account': '13243785230', 'password': 'zxd19860731', 'phone': '13243785230'})
-    # print(dir_name)

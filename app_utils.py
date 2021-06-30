@@ -1,4 +1,5 @@
 import datetime
+import re
 
 from adbutils import AdbDevice, AdbClient
 import uiautomator2 as u2
@@ -17,8 +18,13 @@ def top_activity(device: u2.Device) -> str:
 
 
 def activity_window(device: u2.Device, activity: str) -> list:
-    result = device.shell("dumpsys window " + activity + " | grep \"Window #\"")
-    return result.output.strip().split('\n')
+    wins = device.shell("dumpsys window " + activity + " | grep \"Window #\"")
+    return wins.output.strip().split('\n')
+
+
+def input_shown(device: u2.Device) -> bool:
+    input_info = device.shell('dumpsys input_method | grep mInputShown').output.strip()
+    return re.compile(r"mInputShown=(\S+)").findall(input_info)[0] == 'true'
 
 
 def deal_with_permission() -> int:
@@ -35,7 +41,4 @@ def deal_with_upgrade_dialog() -> int:
 
 if __name__ == '__main__':
     current_device = u2.connect()
-    result = top_app(current_device)
-    # act = top_activity(current_device)
-    # count = activity_window(current_device, act)
-    print(current_device.app_info(result))
+    print(input_shown(current_device))
