@@ -52,7 +52,7 @@ def get_connect_device_serial() -> list:
 
 if __name__ == '__main__':
     dev_serial = get_connect_device_serial()[0]
-    load_script(dev_serial, 'com.ss.android.ugc.aweme', 160502)
+    load_script(dev_serial, 'com.ss.android.ugc.aweme', 160601)
     do_action("init", {'serial': dev_serial})
     do_action("launch_app",
               {'app_package': 'com.ss.android.ugc.aweme', 'activity': 'com.ss.android.ugc.aweme.main.MainActivity'})
