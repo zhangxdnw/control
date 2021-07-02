@@ -16,7 +16,6 @@ target_app_package: str
 def init(serial: str):
     global device
     device = u2.connect(serial)
-    device.app_stop_all()
     device.screen_on()
 
 
@@ -24,12 +23,16 @@ def launch_app(app_package: str, activity: str):
     count: int = 0
     try1: bool = False
     try2: bool = False
+    try3: bool = False
+    try4: bool = False
+    print('stop ' + app_package)
+    device.app_stop(app_package)
     while count < 10:
         # 尝试启动主界面
         print('while loop')
         common.common_launch_app(device, app_package, activity)
-        # 等待页面启动
-        time.sleep(2)
+        # 等待页面启动完成
+        time.sleep(4)
         # 获取校验信息
         top_app = app_utils.top_app(device)
         top_activity = app_utils.top_activity(device)
@@ -42,12 +45,20 @@ def launch_app(app_package: str, activity: str):
                 else:  # 不止一个窗口，被其他弹窗遮盖
                     if not try1:
                         print('尝试隐私点击隐私声明弹窗')
-                        device(resourceId='com.ss.android.ugc.aweme:id/bb_').click_exists()
+                        device(resourceId='com.ss.android.ugc.aweme:id/bdt').click_exists(3)
                         try1 = True
                     elif not try2:
                         print('尝试点击个人信息保护')
-                        device(resourceId='com.ss.android.ugc.aweme:id/bb1').click_exists()
+                        device(resourceId='com.ss.android.ugc.aweme:id/bb1').click_exists(3) # TODO 资源修改
                         try2 = True
+                    elif not try3:
+                        print('尝试点掉青少年模式')
+                        device(resourceId='com.ss.android.ugc.aweme:id/+=').click_exists(3)
+                        try3 = True
+                    elif not try4:
+                        print('尝试点掉红包活动')
+                        device(xpath='//*[@resource-id="com.ss.android.ugc.aweme:id/afd"]/android.widget.FrameLayout[1]/android.view.ViewGroup[4]').click_exists(3)
+                        try4 = True
                     else:
                         print('已尝试完')
             else:
